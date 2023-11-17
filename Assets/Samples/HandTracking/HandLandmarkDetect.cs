@@ -117,7 +117,7 @@ namespace TensorFlowLite
         public Result GetResult()
         {
             // Normalize 0 ~ 255 => 0.0 ~ 1.0
-            const float SCALE = 1f / 255f;
+            const float SCALE = 1f / 224f;
             var mtx = cropMatrix.inverse;
 
             result.score = output1[0];

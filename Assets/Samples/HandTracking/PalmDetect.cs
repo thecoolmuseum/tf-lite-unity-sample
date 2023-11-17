@@ -37,7 +37,7 @@ namespace TensorFlowLite
                 inputSizeWidth = 192,
                 inputSizeHeight = 192,
 
-                minScale = 0.1171875f,
+                minScale = 0.1484375f,
                 maxScale = 0.75f,
 
                 anchorOffsetX = 0.5f,
