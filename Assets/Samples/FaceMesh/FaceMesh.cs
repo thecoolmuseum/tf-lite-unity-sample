@@ -11,7 +11,7 @@ namespace TensorFlowLite
             public float score;
             public Vector3[] keypoints;
         }
-        public const int KEYPOINT_COUNT = 468;
+        public const int KEYPOINT_COUNT = 478;
         private float[,] output0 = new float[KEYPOINT_COUNT, 3]; // keypoint
         private float[] output1 = new float[1]; // flag
 
@@ -64,7 +64,7 @@ namespace TensorFlowLite
 
         public Result GetResult()
         {
-            const float SCALE = 1f / 192f;
+            const float SCALE = 1f / 256f;
             var mtx = cropMatrix.inverse;
 
             result.score = output1[0];

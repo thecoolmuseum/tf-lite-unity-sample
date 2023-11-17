@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3708708, g: 0.37838137, b: 0.35725543, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -823,26 +823,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   options:
     detect:
-      modelPath: mediapipe/pose_detection.tflite
+      modelPath: mediapipeV2/pose_detector.tflite
       aspectMode: 1
       scoreThreshold: 0.5
       useNonMaxSuppression: 0
       iouThreshold: 0.3
     landmark:
-      modelPath: mediapipe/pose_landmark_lite.tflite
+      modelPath: mediapipeV2/pose_landmarks_detector_full.tflite
       useWorldLandmarks: 1
       useFilter: 1
       filterVelocityScale: {x: 10, y: 10, z: 2}
       poseShift: {x: 0, y: 0}
       poseScale: {x: 1.5, y: 1.5}
-      enableSegmentation: 1
+      enableSegmentation: 0
       compute: {fileID: 7200000, guid: 658cd9fdf48c94ab486bea7f6d9753a8, type: 3}
       segmentationSigma: 1
   containerView: {fileID: 2074584277}
   debugView: {fileID: 1302103928}
   segmentationView: {fileID: 36180906}
   canvas: {fileID: 1051232097}
-  runBackground: 0
+  runBackground: 1
   visibilityThreshold: 0.5
 --- !u!4 &1453601107
 Transform:
@@ -871,7 +871,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f81f0d43e2d14fbbb064a205095507c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editorCameraName: FaceTime HD Camera
+  editorCameraName: USB Camera
   preferKind: 1
   isFrontFacing: 0
   requestSize: {x: 1280, y: 720}
