@@ -19,12 +19,14 @@ namespace TensorFlowLite
         public const int MAX_PALM_NUM = 4;
 
         // classificators / scores
-        private readonly float[] output0 = new float[2944];
+        // private readonly float[] output0 = new float[2944];
+        private readonly float[] output1 = new float[2016];
 
         // regressors / points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
         // 4 - 17 are 7 hand keypoint x and y coordinates: x1,y1,x2,y2,...x7,y7
-        private readonly float[,] output1 = new float[2944, 18];
+        // private readonly float[,] output1 = new float[2944, 18];
+        private readonly float[,] output0 = new float[2016, 18];
         private readonly List<Result> results = new List<Result>();
         private readonly SsdAnchor[] anchors;
 
@@ -32,8 +34,8 @@ namespace TensorFlowLite
         {
             var options = new SsdAnchorsCalculator.Options()
             {
-                inputSizeWidth = 256,
-                inputSizeHeight = 256,
+                inputSizeWidth = 192,
+                inputSizeHeight = 192,
 
                 minScale = 0.1171875f,
                 maxScale = 0.75f,
@@ -41,10 +43,10 @@ namespace TensorFlowLite
                 anchorOffsetX = 0.5f,
                 anchorOffsetY = 0.5f,
 
-                numLayers = 5,
+                numLayers = 4,
                 featureMapWidth = new int[0],
                 featureMapHeight = new int[0],
-                strides = new int[] { 8, 16, 32, 32, 32 },
+                strides = new int[] { 8, 16, 16, 16 },
 
                 aspectRatios = new float[] { 1.0f },
 
@@ -54,7 +56,14 @@ namespace TensorFlowLite
             };
 
             anchors = SsdAnchorsCalculator.Generate(options);
-            Debug.AssertFormat(anchors.Length == 2944, "Anchors count must be 2944");
+            Debug.Log(anchors.Length);
+            Debug.AssertFormat(anchors.Length == 2016, "Anchors count must be 2016");
+
+            // shape配列の内容を表示
+
+            Debug.Log(string.Join(", ", interpreter.GetInputTensorInfo(0).shape));
+            Debug.Log(string.Join(", ", interpreter.GetOutputTensorInfo(0).shape));
+            Debug.Log(string.Join(", ", interpreter.GetOutputTensorInfo(1).shape));
         }
 
         public override void Invoke(Texture inputTex)
@@ -95,7 +104,7 @@ namespace TensorFlowLite
 
             for (int i = 0; i < anchors.Length; i++)
             {
-                float score = MathTF.Sigmoid(output0[i]);
+                float score = MathTF.Sigmoid(output1[i]);
                 if (score < scoreThreshold)
                 {
                     continue;
@@ -103,10 +112,10 @@ namespace TensorFlowLite
 
                 SsdAnchor anchor = anchors[i];
 
-                float sx = output1[i, 0];
-                float sy = output1[i, 1];
-                float w = output1[i, 2];
-                float h = output1[i, 3];
+                float sx = output0[i, 0];
+                float sy = output0[i, 1];
+                float w = output0[i, 2];
+                float h = output0[i, 3];
 
                 float cx = sx + anchor.x * width;
                 float cy = sy + anchor.y * height;
@@ -119,8 +128,8 @@ namespace TensorFlowLite
                 var keypoints = new Vector2[7];
                 for (int j = 0; j < 7; j++)
                 {
-                    float lx = output1[i, 4 + (2 * j) + 0];
-                    float ly = output1[i, 4 + (2 * j) + 1];
+                    float lx = output0[i, 4 + (2 * j) + 0];
+                    float ly = output0[i, 4 + (2 * j) + 1];
                     lx += anchor.x * width;
                     ly += anchor.y * height;
                     lx /= (float)width;

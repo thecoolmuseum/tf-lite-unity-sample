@@ -805,7 +805,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79652f67b30a4442f9200189000f7eff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  palmModelFile: mediapipe/palm_detection_builtin_256_float16_quant.tflite
+  palmModelFile: mediapipeV2/hand_detector.tflite
   landmarkModelFile: mediapipeV2/hand_landmarks_detector.tflite
   cameraView: {fileID: 2074584278}
   debugPalmView: {fileID: 1302103928}
