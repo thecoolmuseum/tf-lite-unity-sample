@@ -12,6 +12,9 @@ public sealed class FaceMeshSample : MonoBehaviour
     [SerializeField, FilePopup("*.tflite")]
     private string faceMeshModelFile = "coco_ssd_mobilenet_quant.tflite";
 
+    [SerializeField, FilePopup("*.tflite")]
+    private string faceBlendshapeModelFile = "coco_ssd_mobilenet_quant.tflite";
+
     [SerializeField]
     private bool useLandmarkToDetection = true;
 
@@ -22,21 +25,27 @@ public sealed class FaceMeshSample : MonoBehaviour
     private RawImage croppedView = null;
 
     [SerializeField]
+    private Text consoleText = null;
+
+    [SerializeField]
     private Material faceMaterial = null;
 
     private FaceDetect faceDetect;
     private FaceMesh faceMesh;
+    private FaceBlendshape faceBlendshape;
     private PrimitiveDraw draw;
     private MeshFilter faceMeshFilter;
     private Vector3[] faceKeypoints;
     private FaceDetect.Result detectionResult;
     private FaceMesh.Result meshResult;
+    private FaceBlendshape.Result blendshapeResult;
     private readonly Vector3[] rtCorners = new Vector3[4];
 
     private void Start()
     {
         faceDetect = new FaceDetect(faceModelFile);
         faceMesh = new FaceMesh(faceMeshModelFile);
+        faceBlendshape = new FaceBlendshape(faceBlendshapeModelFile);
         draw = new PrimitiveDraw(Camera.main, gameObject.layer);
 
         // Create Face Mesh Renderer
@@ -63,12 +72,14 @@ public sealed class FaceMeshSample : MonoBehaviour
 
         faceDetect?.Dispose();
         faceMesh?.Dispose();
+        faceBlendshape?.Dispose();
         draw?.Dispose();
     }
 
     private void Update()
     {
         DrawResults(detectionResult, meshResult);
+        OutputBlendshape(blendshapeResult);
     }
 
     private void OnTextureUpdate(Texture texture)
@@ -92,6 +103,7 @@ public sealed class FaceMeshSample : MonoBehaviour
         if (meshResult.score < 0.5f)
         {
             detectionResult = null;
+            blendshapeResult = null;
             return;
         }
 
@@ -99,8 +111,31 @@ public sealed class FaceMeshSample : MonoBehaviour
         {
             detectionResult = faceMesh.LandmarkToDetection(meshResult);
         }
+
+        faceBlendshape.Invoke(meshResult);
+        blendshapeResult = faceBlendshape.GetResult();
     }
 
+    void OutputBlendshape(FaceBlendshape.Result blendshapeResult)
+    {
+        if (consoleText == null )
+        {
+            return;
+        }
+        if (blendshapeResult == null)
+        {
+            consoleText.text = "";
+            return;
+        }
+        string output = "";
+        for (int i = 0; i < blendshapeResult.blendshapes.Length; i++)
+        {
+            int rate = (int)(blendshapeResult.blendshapes[i] * 20f);
+            int rateInv = 20 - rate;
+            output += $"{new string('■', rate)}{new string('□', rateInv)} {FaceBlendshape.BlendshapeNames[i]}: {blendshapeResult.blendshapes[i]:F2}\n";
+        }
+        consoleText.text = output;
+    }
     private void DrawResults(FaceDetect.Result detection, FaceMesh.Result face)
     {
         cameraView.rectTransform.GetWorldCorners(rtCorners);
