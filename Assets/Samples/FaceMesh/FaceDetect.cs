@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace TensorFlowLite
@@ -83,6 +85,23 @@ namespace TensorFlowLite
 
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
+        }
+
+        public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken, PlayerLoopTiming timing = PlayerLoopTiming.Update)
+        {
+            await ToTensorAsync(inputTex, inputTensor, cancellationToken);
+            await UniTask.SwitchToThreadPool();
+
+            interpreter.SetInputTensorData(0, inputTensor);
+            interpreter.Invoke();
+
+            interpreter.GetOutputTensorData(0, output0);
+            interpreter.GetOutputTensorData(1, output1);
+
+            var results = GetResults();
+
+            await UniTask.SwitchToMainThread(timing, cancellationToken);
+            return results;
         }
 
         public List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)

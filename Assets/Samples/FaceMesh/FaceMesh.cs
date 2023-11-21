@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace TensorFlowLite
@@ -55,13 +57,39 @@ namespace TensorFlowLite
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
-            //
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
         }
 
+        public async UniTask<Result> InvokeAsync(Texture inputTex, FaceDetect.Result face, PoseDetect.Result pose, CancellationToken cancellationToken, PlayerLoopTiming timing)
+        {
+            cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
+            {
+                rect = face.rect,
+                rotationDegree = CalcFaceRotation(ref face) * Mathf.Rad2Deg,
+                shift = FaceShift,
+                scale = FaceScale,
+                mirrorHorizontal = resizeOptions.mirrorHorizontal,
+                mirrorVertical = resizeOptions.mirrorVertical,
+            });
+
+            RenderTexture rt = resizer.Resize(
+                inputTex, resizeOptions.width, resizeOptions.height, true,
+                cropMatrix,
+                TextureResizer.GetTextureST(inputTex, resizeOptions));
+            await ToTensorAsync(rt, inputTensor, false, cancellationToken);
+            await UniTask.SwitchToThreadPool();
+
+            interpreter.SetInputTensorData(0, inputTensor);
+            interpreter.Invoke();
+            interpreter.GetOutputTensorData(0, output0);
+            interpreter.GetOutputTensorData(1, output1);
+
+            await UniTask.SwitchToMainThread(timing, cancellationToken);
+            return GetResult();
+        }
         public Result GetResult()
         {
             const float SCALE = 1f / 256f;
